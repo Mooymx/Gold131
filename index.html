@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gold 131 · Calculadora y Compraventa de Oro</title>
+<style>
+  :root {
+    --bg: #0d0c0a;
+    --surface: #181612;
+    --surface-2: #221e17;
+    --ink: #f4ecd6;
+    --ink-soft: #b9ad8a;
+    --line: #3a3220;
+    --gold: #d4af37;
+    --gold-deep: #b8860b;
+    --gold-soft: #2a2415;
+    --accent: #d4af37;
+    --danger: #e57373;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  header.app-header {
+    background: #000;
+    color: var(--gold);
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--gold-deep);
+  }
+  header.app-header .logo {
+    width: 56px; height: 56px;
+  }
+  header.app-header .brand h1 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--gold);
+    font-family: "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  }
+  header.app-header .brand small {
+    color: #c9a75a;
+    display: block;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 24px; display: grid; gap: 20px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    margin: 0 0 16px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--gold);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 10px;
+    font-weight: 600;
+  }
+  .grid { display: grid; gap: 12px; }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 720px) {
+    .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  }
+  label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; font-weight: 500; }
+  input, select, textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: inherit;
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  input::placeholder, textarea::placeholder { color: #6e6549; }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212,175,55,.18);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+
+  table.pieces {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  table.pieces th, table.pieces td {
+    padding: 8px 6px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  table.pieces th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  table.pieces input, table.pieces select { padding: 6px 8px; font-size: 14px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.actions { width: 40px; text-align: center; }
+
+  button {
+    cursor: pointer;
+    font: inherit;
+    border-radius: 6px;
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+    transition: all .15s;
+    letter-spacing: .02em;
+  }
+  button:hover { background: #2c2718; border-color: var(--gold-deep); }
+  button.primary {
+    background: var(--gold);
+    color: #1a1408;
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+  button.primary:hover { background: #e5c14a; border-color: #e5c14a; }
+  button.ghost { background: transparent; }
+  button.danger {
+    color: var(--danger);
+    border-color: transparent;
+    background: transparent;
+    padding: 4px 10px;
+    font-size: 20px;
+    line-height: 1;
+  }
+  button.danger:hover { background: rgba(229,115,115,.12); }
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 8px;
+  }
+  .summary div { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .summary .label { color: var(--ink-soft); }
+  .summary .value { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .total {
+    margin-top: 16px;
+    background: linear-gradient(135deg, #1a1408, #2a2010);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    box-shadow: inset 0 0 20px rgba(212,175,55,.08);
+  }
+  .total .label { font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: var(--gold); font-weight: 600; }
+  .total .value { font-size: 28px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  .hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+  /* TICKET (preview + print) */
+  .ticket {
+    background: #fff;
+    color: #000;
+    padding: 32px 36px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .ticket h2 {
+    margin: 0;
+    font-size: 18px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    border: none;
+    padding: 0;
+    color: #000;
+  }
+  .ticket .merchant {
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px double #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-direction: column;
+  }
+  .ticket .merchant .brand-row {
+    display: flex; align-items: center; gap: 12px; justify-content: center;
+  }
+  .ticket .merchant svg.logo-print { width: 44px; height: 44px; }
+  .ticket .merchant .name {
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: .15em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+  .ticket .merchant .tagline {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #444;
+    margin-top: 2px;
+  }
+  .ticket .meta {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  .ticket section { margin: 14px 0; }
+  .ticket section h3 {
+    font-size: 12px;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border-bottom: 1px solid #000;
+    padding-bottom: 2px;
+  }
+  .ticket dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+  .ticket dt { color: #444; font-size: 12px; }
+  .ticket dd { margin: 0; }
+  .ticket table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  .ticket table th, .ticket table td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+    text-align: left;
+  }
+  .ticket table th { background: #eee; font-size: 11px; text-transform: uppercase; }
+  .ticket table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .ticket .total-line {
+    display: flex;
+    justify-content: space-between;
+    border-top: 2px double #000;
+    border-bottom: 2px double #000;
+    padding: 8px 0;
+    margin-top: 12px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .ticket .legal {
+    font-size: 11px;
+    text-align: justify;
+    margin: 16px 0;
+    color: #222;
+  }
+  .ticket .signatures {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 40px;
+  }
+  .ticket .sig {
+    text-align: center;
+    border-top: 1px solid #000;
+    padding-top: 6px;
+    font-size: 12px;
+  }
+  .ticket .folio { font-weight: 700; }
+
+  .empty-ticket {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 40px 20px;
+    font-style: italic;
+  }
+
+  /* PRINT */
+  @media print {
+    @page { size: Letter; margin: 14mm; }
+    body { background: #fff; }
+    header.app-header,
+    .no-print { display: none !important; }
+    main { padding: 0; max-width: none; display: block; }
+    .card { border: none; box-shadow: none; padding: 0; }
+    .ticket { border: none; padding: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<header class="app-header no-print">
+  <svg class="logo" viewBox="0 0 100 100" aria-hidden="true">
+    <defs>
+      <clipPath id="circleClip"><circle cx="50" cy="50" r="46"/></clipPath>
+    </defs>
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#d4af37" stroke-width="3"/>
+    <g clip-path="url(#circleClip)" stroke="#d4af37" stroke-width="3" stroke-linecap="square">
+      <line x1="10" y1="22" x2="50" y2="22"/>
+      <line x1="10" y1="34" x2="50" y2="34"/>
+      <line x1="10" y1="46" x2="50" y2="46"/>
+      <line x1="10" y1="58" x2="50" y2="58"/>
+      <line x1="10" y1="70" x2="50" y2="70"/>
+      <line x1="10" y1="82" x2="50" y2="82"/>
+      <line x1="56" y1="14" x2="56" y2="86"/>
+      <line x1="68" y1="14" x2="68" y2="86"/>
+      <line x1="80" y1="14" x2="80" y2="86"/>
+      <line x1="92" y1="14" x2="92" y2="86"/>
+    </g>
+  </svg>
+  <div class="brand">
+    <h1>GOLD 131</h1>
+    <small>Compra y venta de oro, plata, monedas y antigüedades</small>
+  </div>
+</header>
+
+<main>
+
+  <!-- 1. Configuración -->
+  <section class="card no-print" id="cfg-card">
+    <h2>1 · Configuración</h2>
+    <div class="grid cols-3">
+      <div>
+        <label for="price24">Precio del oro 24k (MXN / gramo)</label>
+        <input id="price24" type="number" min="0" step="0.01" placeholder="ej. 2450.00" />
+        <div class="hint">Cotización del día por gramo de oro puro 24k.</div>
+      </div>
+      <div>
+        <label for="margin">Margen del comprador (%)</label>
+        <input id="margin" type="number" min="0" max="100" step="0.5" placeholder="ej. 20" />
+        <div class="hint">Descuento sobre el valor de mercado para cubrir gastos y utilidad.</div>
+      </div>
+      <div>
+        <label for="currency">Moneda</label>
+        <select id="currency">
+          <option value="MXN">MXN — Peso mexicano</option>
+          <option value="USD">USD — Dólar</option>
+          <option value="EUR">EUR — Euro</option>
+        </select>
+      </div>
+    </div>
+
+    <h2 style="margin-top:20px">Datos del comerciante (aparecen en el ticket)</h2>
+    <div class="grid cols-2">
+      <div>
+        <label for="m-name">Nombre o razón social</label>
+        <input id="m-name" type="text" placeholder="Gold 131" />
+      </div>
+      <div>
+        <label for="m-rfc">RFC / Identificación</label>
+        <input id="m-rfc" type="text" placeholder="ABCD800101XYZ" />
+      </div>
+      <div>
+        <label for="m-addr">Domicilio</label>
+        <input id="m-addr" type="text" placeholder="Av. Reforma 100, CDMX" />
+      </div>
+      <div>
+        <label for="m-phone">Teléfono</label>
+        <input id="m-phone" type="text" placeholder="55 1234 5678" />
+      </div>
+    </div>
+    <div class="hint" style="margin-top:8px">Estos datos se guardan localmente en tu navegador.</div>
+  </section>
+
+  <!-- 2. Cliente -->
+  <section class="card no-print" id="cli-card">
+    <h2>2 · Datos del cliente</h2>
+    <div class="grid cols-2">
+      <div>
+        <label for="c-name">Nombre completo</label>
+        <input id="c-name" type="text" placeholder="María Hernández López" />
+      </div>
+      <div>
+        <label for="c-id">Identificación oficial (INE / Pasaporte)</label>
+        <input id="c-id" type="text" placeholder="HEMA800101MDFRRR04" />
+      </div>
+      <div>
+        <label for="c-addr">Domicilio</label>
+        <input id="c-addr" type="text" placeholder="Calle, número, colonia, ciudad" />
+      </div>
+      <div>
+        <label for="c-phone">Teléfono</label>
+        <input id="c-phone" type="text" placeholder="55 1111 2222" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Piezas -->
+  <section class="card no-print" id="pieces-card">
+    <h2>3 · Piezas a valuar</h2>
+    <table class="pieces" id="pieces-table">
+      <thead>
+        <tr>
+          <th style="width:28%">Descripción</th>
+          <th>Kilataje</th>
+          <th>Peso bruto (g)</th>
+          <th>Peso neto (g)</th>
+          <th class="num">$/g neto</th>
+          <th class="num">Subtotal</th>
+          <th class="actions"></th>
+        </tr>
+      </thead>
+      <tbody id="pieces-body"></tbody>
+    </table>
+    <div class="row-actions">
+      <button type="button" id="add-piece">+ Agregar pieza</button>
+      <button type="button" class="ghost" id="clear-pieces">Limpiar todas</button>
+    </div>
+    <div class="hint">El peso neto excluye piedras, broches u otros materiales no auríferos. Si lo desconoces, déjalo igual al peso bruto.</div>
+  </section>
+
+  <!-- 4. Valuación -->
+  <section class="card no-print" id="valuation-card">
+    <h2>4 · Valuación</h2>
+    <div class="summary">
+      <div><span class="label">Piezas registradas</span><span class="value" id="v-count">0</span></div>
+      <div><span class="label">Peso neto total</span><span class="value" id="v-weight">0 g</span></div>
+      <div><span class="label">Equivalente en oro puro 24k</span><span class="value" id="v-pure">0 g</span></div>
+      <div><span class="label">Valor de mercado (sin margen)</span><span class="value" id="v-market">$0.00</span></div>
+      <div><span class="label">Margen del comprador</span><span class="value" id="v-margin">$0.00</span></div>
+    </div>
+    <div class="total">
+      <span class="label">Oferta de compra</span>
+      <span class="value" id="v-total">$0.00</span>
+    </div>
+    <div class="row-actions">
+      <button type="button" class="primary" id="generate-ticket">Generar ticket / Hoja de compraventa</button>
+    </div>
+  </section>
+
+  <!-- 5. Ticket -->
+  <section class="card" id="ticket-wrapper">
+    <h2 class="no-print">5 · Vista previa del ticket</h2>
+    <div id="ticket-area">
+      <div class="empty-ticket">Llena los datos y presiona <strong>Generar ticket</strong>.</div>
+    </div>
+    <div class="row-actions no-print" id="ticket-actions" style="display:none">
+      <button type="button" class="primary" id="print-ticket">Imprimir / Guardar PDF</button>
+      <button type="button" class="ghost" id="new-operation">Nueva operación</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const KARATS = [8, 9, 10, 12, 14, 18, 21, 22, 24];
+  const STORAGE = "gold-calc:v1";
+  const FOLIO_KEY = "gold-calc:folio";
+
+  /* ---------- State ---------- */
+  const state = {
+    cfg: { price24: 0, margin: 20, currency: "MXN" },
+    merchant: { name: "Gold 131", rfc: "", addr: "", phone: "", tagline: "Compra y venta de oro, plata, monedas y antigüedades." },
+    client: { name: "", id: "", addr: "", phone: "" },
+    pieces: [],
+  };
+
+  /* ---------- Persistence ---------- */
+  function loadCfg() {
+    try {
+      const raw = localStorage.getItem(STORAGE);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      Object.assign(state.cfg, data.cfg || {});
+      Object.assign(state.merchant, data.merchant || {});
+    } catch (_) {}
+  }
+  function saveCfg() {
+    try {
+      localStorage.setItem(STORAGE, JSON.stringify({
+        cfg: state.cfg,
+        merchant: state.merchant,
+      }));
+    } catch (_) {}
+  }
+  function nextFolio() {
+    const n = parseInt(localStorage.getItem(FOLIO_KEY) || "0", 10) + 1;
+    localStorage.setItem(FOLIO_KEY, String(n));
+    return String(n).padStart(5, "0");
+  }
+
+  /* ---------- Utils ---------- */
+  function fmtMoney(n) {
+    const cur = state.cfg.currency || "MXN";
+    try {
+      return new Intl.NumberFormat("es-MX", { style: "currency", currency: cur }).format(n || 0);
+    } catch (_) {
+      return (n || 0).toFixed(2) + " " + cur;
+    }
+  }
+  function fmtGrams(n) {
+    return (Math.round((n || 0) * 1000) / 1000).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 3 }) + " g";
+  }
+  function todayLong() {
+    const d = new Date();
+    return d.toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
+  }
+  function todayISO() {
+    return new Date().toISOString().slice(0, 16).replace("T", " ");
+  }
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function numberToWords(n) {
+    // Conversor simple español hasta millones, para "Son: ___ pesos ##/100 M.N."
+    n = Math.round(n * 100) / 100;
+    const entero = Math.floor(n);
+    const cents = Math.round((n - entero) * 100);
+    const cur = state.cfg.currency === "MXN" ? "PESOS" : (state.cfg.currency === "USD" ? "DÓLARES" : (state.cfg.currency === "EUR" ? "EUROS" : "UNIDADES"));
+    const tail = (state.cfg.currency === "MXN" ? " M.N." : "");
+    const words = enteroAPalabras(entero);
+    return `(${words} ${cur} ${String(cents).padStart(2,"0")}/100${tail})`;
+  }
+  function enteroAPalabras(n) {
+    if (n === 0) return "CERO";
+    const u = ["","UNO","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE","DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISÉIS","DIECISIETE","DIECIOCHO","DIECINUEVE","VEINTE"];
+    const decenas = ["","","VEINTI","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+    const centenas = ["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS","SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+    function dosDigitos(n) {
+      if (n <= 20) return u[n];
+      if (n < 30) return "VEINTI" + u[n-20].toLowerCase().toUpperCase();
+      const d = Math.floor(n/10), r = n%10;
+      return decenas[d] + (r ? " Y " + u[r] : "");
+    }
+    function tresDigitos(n) {
+      if (n === 100) return "CIEN";
+      const c = Math.floor(n/100), r = n%100;
+      return (c ? centenas[c] + (r ? " " : "") : "") + (r ? dosDigitos(r) : "");
+    }
+    if (n < 1000) return tresDigitos(n);
+    if (n < 1000000) {
+      const miles = Math.floor(n/1000), r = n%1000;
+      const milesStr = miles === 1 ? "MIL" : tresDigitos(miles) + " MIL";
+      return milesStr + (r ? " " + tresDigitos(r) : "");
+    }
+    const mill = Math.floor(n/1000000), r = n%1000000;
+    const millStr = mill === 1 ? "UN MILLÓN" : tresDigitos(mill) + " MILLONES";
+    return millStr + (r ? " " + enteroAPalabras(r) : "");
+  }
+
+  /* ---------- Pieces UI ---------- */
+  const tbody = document.getElementById("pieces-body");
+
+  function addPiece(data) {
+    const piece = Object.assign({
+      desc: "",
+      karat: 14,
+      gross: 0,
+      net: 0,
+    }, data || {});
+    state.pieces.push(piece);
+    renderPieces();
+  }
+
+  function renderPieces() {
+    tbody.innerHTML = "";
+    state.pieces.forEach((p, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input data-k="desc" type="text" placeholder="Anillo, cadena, dije..." value="${escapeHtml(p.desc)}" /></td>
+        <td>
+          <select data-k="karat">
+            ${KARATS.map(k => `<option value="${k}" ${k === p.karat ? "selected" : ""}>${k}k</option>`).join("")}
+          </select>
+        </td>
+        <td><input data-k="gross" type="number" min="0" step="0.01" value="${p.gross || ""}" placeholder="0.00" /></td>
+        <td><input data-k="net" type="number" min="0" step="0.01" value="${p.net || ""}" placeholder="0.00" /></td>
+        <td class="num" data-cell="ppg">—</td>
+        <td class="num" data-cell="sub">—</td>
+        <td class="actions"><button class="danger" type="button" title="Quitar" data-action="remove">×</button></td>
+      `;
+      tr.querySelectorAll("input, select").forEach(el => {
+        el.addEventListener("input", () => {
+          const k = el.dataset.k;
+          if (k === "karat") p.karat = parseInt(el.value, 10);
+          else if (k === "desc") p.desc = el.value;
+          else p[k] = parseFloat(el.value) || 0;
+          // Auto-fill net if empty when entering gross
+          if (k === "gross" && !p.net) {
+            p.net = p.gross;
+            tr.querySelector('[data-k="net"]').value = p.gross || "";
+          }
+          recompute();
+        });
+      });
+      tr.querySelector('[data-action="remove"]').addEventListener("click", () => {
+        state.pieces.splice(idx, 1);
+        renderPieces();
+        recompute();
+      });
+      tbody.appendChild(tr);
+    });
+    recompute();
+  }
+
+  /* ---------- Compute ---------- */
+  function pieceCalc(p) {
+    const purity = (p.karat || 0) / 24;
+    const pure = (p.net || 0) * purity;
+    const ppgNet = (state.cfg.price24 || 0) * purity;
+    const subtotal = pure * (state.cfg.price24 || 0);
+    return { purity, pure, ppgNet, subtotal };
+  }
+  function totals() {
+    let count = 0, weight = 0, pure = 0, market = 0;
+    for (const p of state.pieces) {
+      if ((p.net || 0) > 0) count++;
+      weight += p.net || 0;
+      const c = pieceCalc(p);
+      pure += c.pure;
+      market += c.subtotal;
+    }
+    const margin = market * (state.cfg.margin || 0) / 100;
+    const offer = market - margin;
+    return { count, weight, pure, market, margin, offer };
+  }
+  function recompute() {
+    // Per-row
+    state.pieces.forEach((p, i) => {
+      const tr = tbody.children[i];
+      if (!tr) return;
+      const c = pieceCalc(p);
+      tr.querySelector('[data-cell="ppg"]').textContent = fmtMoney(c.ppgNet);
+      tr.querySelector('[data-cell="sub"]').textContent = fmtMoney(c.subtotal);
+    });
+    // Totals
+    const t = totals();
+    document.getElementById("v-count").textContent = t.count;
+    document.getElementById("v-weight").textContent = fmtGrams(t.weight);
+    document.getElementById("v-pure").textContent = fmtGrams(t.pure);
+    document.getElementById("v-market").textContent = fmtMoney(t.market);
+    document.getElementById("v-margin").textContent = "− " + fmtMoney(t.margin);
+    document.getElementById("v-total").textContent = fmtMoney(t.offer);
+  }
+
+  /* ---------- Ticket ---------- */
+  function generateTicket() {
+    const t = totals();
+    if (t.count === 0) {
+      alert("Agrega al menos una pieza con peso neto mayor a cero.");
+      return;
+    }
+    if (!state.cfg.price24 || state.cfg.price24 <= 0) {
+      alert("Captura el precio del oro 24k por gramo.");
+      return;
+    }
+    if (!state.client.name) {
+      if (!confirm("No has capturado el nombre del cliente. ¿Continuar de todas formas?")) return;
+    }
+
+    const folio = nextFolio();
+    const fecha = todayLong();
+    const hora = todayISO();
+    const m = state.merchant;
+    const c = state.client;
+
+    const rows = state.pieces
+      .filter(p => (p.net || 0) > 0)
+      .map((p, i) => {
+        const calc = pieceCalc(p);
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${escapeHtml(p.desc) || "—"}</td>
+            <td>${p.karat}k</td>
+            <td class="num">${(p.gross || 0).toFixed(2)}</td>
+            <td class="num">${(p.net || 0).toFixed(2)}</td>
+            <td class="num">${calc.pure.toFixed(3)}</td>
+            <td class="num">${fmtMoney(calc.ppgNet)}</td>
+            <td class="num">${fmtMoney(calc.subtotal)}</td>
+          </tr>
+        `;
+      }).join("");
+
+    const logoSvg = `
+      <svg class="logo-print" viewBox="0 0 100 100" aria-hidden="true">
+        <defs><clipPath id="cclip${folio}"><circle cx="50" cy="50" r="46"/></clipPath></defs>
+        <circle cx="50" cy="50" r="46" fill="none" stroke="#000" stroke-width="3"/>
+        <g clip-path="url(#cclip${folio})" stroke="#000" stroke-width="3" stroke-linecap="square">
+          <line x1="10" y1="22" x2="50" y2="22"/><line x1="10" y1="34" x2="50" y2="34"/>
+          <line x1="10" y1="46" x2="50" y2="46"/><line x1="10" y1="58" x2="50" y2="58"/>
+          <line x1="10" y1="70" x2="50" y2="70"/><line x1="10" y1="82" x2="50" y2="82"/>
+          <line x1="56" y1="14" x2="56" y2="86"/><line x1="68" y1="14" x2="68" y2="86"/>
+          <line x1="80" y1="14" x2="80" y2="86"/><line x1="92" y1="14" x2="92" y2="86"/>
+        </g>
+      </svg>`;
+
+    const html = `
+      <article class="ticket">
+        <div class="merchant">
+          <div class="brand-row">
+            ${logoSvg}
+            <div class="name">${escapeHtml(m.name) || "Gold 131"}</div>
+          </div>
+          <div class="tagline">${escapeHtml(m.tagline || "Compra y venta de oro, plata, monedas y antigüedades.")}</div>
+          <div style="font-size:11px;margin-top:4px">
+            ${escapeHtml(m.addr)} ${m.phone ? "· Tel. " + escapeHtml(m.phone) : ""} ${m.rfc ? "· RFC " + escapeHtml(m.rfc) : ""}
+          </div>
+        </div>
+
+        <h2>Hoja de Compraventa</h2>
+
+        <div class="meta">
+          <div><strong>Folio:</strong> <span class="folio">${folio}</span></div>
+          <div><strong>Fecha:</strong> ${fecha}</div>
+          <div><strong>Hora:</strong> ${hora}</div>
+        </div>
+
+        <section>
+          <h3>Vendedor (cliente)</h3>
+          <dl>
+            <dt>Nombre:</dt><dd>${escapeHtml(c.name) || "—"}</dd>
+            <dt>Identificación:</dt><dd>${escapeHtml(c.id) || "—"}</dd>
+            <dt>Domicilio:</dt><dd>${escapeHtml(c.addr) || "—"}</dd>
+            <dt>Teléfono:</dt><dd>${escapeHtml(c.phone) || "—"}</dd>
+          </dl>
+        </section>
+
+        <section>
+          <h3>Piezas entregadas</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Descripción</th>
+                <th>Ley</th>
+                <th>P. bruto (g)</th>
+                <th>P. neto (g)</th>
+                <th>Equiv. 24k (g)</th>
+                <th>$/g neto</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </section>
+
+        <section>
+          <h3>Cálculo</h3>
+          <dl>
+            <dt>Cotización oro 24k:</dt><dd>${fmtMoney(state.cfg.price24)} / gramo</dd>
+            <dt>Peso neto total:</dt><dd>${t.weight.toFixed(2)} g</dd>
+            <dt>Equivalente 24k:</dt><dd>${t.pure.toFixed(3)} g</dd>
+            <dt>Valor de mercado:</dt><dd>${fmtMoney(t.market)}</dd>
+            <dt>Margen comprador (${state.cfg.margin}%):</dt><dd>− ${fmtMoney(t.margin)}</dd>
+          </dl>
+          <div class="total-line">
+            <span>OFERTA DE COMPRA</span>
+            <span>${fmtMoney(t.offer)}</span>
+          </div>
+          <div style="margin-top:6px;font-size:12px">${numberToWords(t.offer)}</div>
+        </section>
+
+        <p class="legal">
+          El vendedor declara bajo protesta de decir verdad ser el legítimo propietario de las piezas
+          descritas y que las mismas no provienen de actividad ilícita alguna. Acepta voluntariamente
+          el monto ofertado como precio total y definitivo de la venta, transmitiendo en este acto
+          la propiedad de las piezas al comprador, sin derecho a reclamación posterior. El comprador
+          recibe las piezas a entera satisfacción y entrega el monto pactado en efectivo.
+        </p>
+
+        <div class="signatures">
+          <div class="sig">${escapeHtml(c.name) || "Vendedor (cliente)"}<br/><small>Firma del vendedor</small></div>
+          <div class="sig">${escapeHtml(m.name) || "Comprador (comerciante)"}<br/><small>Firma del comprador</small></div>
+        </div>
+      </article>
+    `;
+
+    document.getElementById("ticket-area").innerHTML = html;
+    document.getElementById("ticket-actions").style.display = "flex";
+    document.getElementById("ticket-wrapper").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /* ---------- Bindings ---------- */
+  function bindCfg() {
+    const els = {
+      price24: document.getElementById("price24"),
+      margin: document.getElementById("margin"),
+      currency: document.getElementById("currency"),
+      "m-name": document.getElementById("m-name"),
+      "m-rfc": document.getElementById("m-rfc"),
+      "m-addr": document.getElementById("m-addr"),
+      "m-phone": document.getElementById("m-phone"),
+      "c-name": document.getElementById("c-name"),
+      "c-id": document.getElementById("c-id"),
+      "c-addr": document.getElementById("c-addr"),
+      "c-phone": document.getElementById("c-phone"),
+    };
+    // Hydrate
+    els.price24.value = state.cfg.price24 || "";
+    els.margin.value = state.cfg.margin ?? 20;
+    els.currency.value = state.cfg.currency || "MXN";
+    els["m-name"].value = state.merchant.name || "Gold 131";
+    els["m-rfc"].value = state.merchant.rfc || "";
+    els["m-addr"].value = state.merchant.addr || "";
+    els["m-phone"].value = state.merchant.phone || "";
+    state.merchant.name = els["m-name"].value;
+
+    function on(el, fn) { el.addEventListener("input", fn); el.addEventListener("change", fn); }
+    on(els.price24, () => { state.cfg.price24 = parseFloat(els.price24.value) || 0; saveCfg(); recompute(); });
+    on(els.margin, () => { state.cfg.margin = parseFloat(els.margin.value) || 0; saveCfg(); recompute(); });
+    on(els.currency, () => { state.cfg.currency = els.currency.value; saveCfg(); recompute(); });
+    on(els["m-name"], () => { state.merchant.name = els["m-name"].value; saveCfg(); });
+    on(els["m-rfc"], () => { state.merchant.rfc = els["m-rfc"].value; saveCfg(); });
+    on(els["m-addr"], () => { state.merchant.addr = els["m-addr"].value; saveCfg(); });
+    on(els["m-phone"], () => { state.merchant.phone = els["m-phone"].value; saveCfg(); });
+    on(els["c-name"], () => { state.client.name = els["c-name"].value; });
+    on(els["c-id"], () => { state.client.id = els["c-id"].value; });
+    on(els["c-addr"], () => { state.client.addr = els["c-addr"].value; });
+    on(els["c-phone"], () => { state.client.phone = els["c-phone"].value; });
+  }
+
+  document.getElementById("add-piece").addEventListener("click", () => addPiece());
+  document.getElementById("clear-pieces").addEventListener("click", () => {
+    if (state.pieces.length && !confirm("¿Quitar todas las piezas?")) return;
+    state.pieces = [];
+    renderPieces();
+  });
+  document.getElementById("generate-ticket").addEventListener("click", generateTicket);
+  document.getElementById("print-ticket").addEventListener("click", () => window.print());
+  document.getElementById("new-operation").addEventListener("click", () => {
+    if (!confirm("Iniciar nueva operación? Se limpiarán cliente y piezas (la configuración del comerciante se conserva).")) return;
+    state.client = { name: "", id: "", addr: "", phone: "" };
+    state.pieces = [];
+    document.getElementById("c-name").value = "";
+    document.getElementById("c-id").value = "";
+    document.getElementById("c-addr").value = "";
+    document.getElementById("c-phone").value = "";
+    renderPieces();
+    document.getElementById("ticket-area").innerHTML = '<div class="empty-ticket">Llena los datos y presiona <strong>Generar ticket</strong>.</div>';
+    document.getElementById("ticket-actions").style.display = "none";
+    document.getElementById("cfg-card").scrollIntoView({ behavior: "smooth" });
+  });
+
+  /* ---------- Init ---------- */
+  loadCfg();
+  bindCfg();
+  addPiece();
+})();
+</script>
+</body>
+</html>
